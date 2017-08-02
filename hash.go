@@ -65,11 +65,13 @@ func fileHash(path string) (string, error) {
 	if cfi != nil { // Check modification time to validate cached hash.
 		fi, err := os.Stat(path)
 		if err != nil {
+			hashCacheData.Del(path)
 			return "", err
 		}
 		if !fi.ModTime().After(cfi.ModTime) {
 			return cfi.Hash, nil
 		}
+		hashCacheData.Del(path)
 	}
 
 	f, err := os.Open(path)

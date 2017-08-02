@@ -32,6 +32,16 @@ Use [Handler.Hash](https://godoc.org/github.com/gowww/static#Handler.Hash) to ap
 staticHandler.Hash("scripts/main.js")
 ```
 
+But generally, you'd want to use this method in your templates:
+
+```Go
+tmpl := `<script src="{{asset "scripts/main.js"}}"></script>`
+
+views := template.Must(template.New("main").Funcs(template.FuncMap{
+	"asset": staticHandler.Hash,
+}).Parse(tmpl))
+```
+
 ## References
 
 - [Strategies for cache-busting CSS — CSS Tricks](https://css-tricks.com/strategies-for-cache-busting-css/)

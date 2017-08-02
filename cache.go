@@ -5,26 +5,32 @@ import (
 	"time"
 )
 
-var hashCacheData = &hashCache{store: make(map[string]*cacheFileInfo)}
+var hashCacheData = &hashCache{files: make(map[string]*hashCacheFile)}
 
 type hashCache struct {
 	sync.RWMutex
-	store map[string]*cacheFileInfo
+	files map[string]*hashCacheFile
 }
 
-type cacheFileInfo struct {
+type hashCacheFile struct {
 	Hash    string
 	ModTime time.Time
 }
 
-func (c *hashCache) Get(path string) *cacheFileInfo {
+func (c *hashCache) Del(path string) {
+	c.Lock()
+	defer c.Unlock()
+	delete(c.files, path)
+}
+
+func (c *hashCache) Get(path string) *hashCacheFile {
 	c.RLock()
 	defer c.RUnlock()
-	return c.store[path]
+	return c.files[path]
 }
 
 func (c *hashCache) Set(path, hash string, mod time.Time) {
 	c.Lock()
 	defer c.Unlock()
-	c.store[path] = &cacheFileInfo{hash, mod}
+	c.files[path] = &hashCacheFile{hash, mod}
 }
