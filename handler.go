@@ -17,11 +17,12 @@ type Handler interface {
 
 type handler struct {
 	next   http.Handler
-	prefix string
-	dir    string
+	prefix string // The URL prefix for static files.
+	dir    string // The directory where static files are to be found.
 }
 
 // Handle returns a handler for static file serving.
+// dir is the directory where static files are to be found.
 func Handle(prefix, dir string) Handler {
 	if !strings.HasPrefix(prefix, "/") || !strings.HasSuffix(prefix, "/") {
 		panic(fmt.Errorf("static: prefix %q must begin and end with %q", prefix, "/"))
@@ -37,40 +38,41 @@ func Handle(prefix, dir string) Handler {
 func (h *handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	r.URL.Path = strings.TrimPrefix(r.URL.Path, h.prefix)
 	prefix, reqHash, ext := hashSplitFilepath(r.URL.Path)
-	if reqHash == "" { // No hash: serve file as wanted.
-		h.next.ServeHTTP(w, r)
-		return
-	}
-	realHash, err := fileHash(filepath.Join(h.dir, prefix+ext))
-	if err != nil { // Cannot open file to get real hash.
+	hash, err := fileHash(filepath.Join(h.dir, prefix+ext))
+	if err != nil { // Cannot open file to get hash.
 		msg, code := toHTTPError(err)
 		http.Error(w, msg, code)
 		return
 	}
-	if reqHash != realHash { // Hash has changed: redirect to new one.
-		http.Redirect(w, r, h.prefix+prefix+"."+realHash+ext, http.StatusMovedPermanently)
+	w.Header().Set("ETag", `"`+hash+`"`)
+	if reqHash == "" { // No hash in request: serve file as wanted.
+		h.next.ServeHTTP(w, r)
+		return
+	}
+	if reqHash != hash { // Hash has changed: redirect to new one.
+		http.Redirect(w, r, h.prefix+prefix+"."+hash+ext, http.StatusMovedPermanently)
 		return
 	}
 	r.URL.Path = prefix + ext
 	w.Header().Set("Cache-Control", "public, max-age=31536000")
-	w.Header().Set("ETag", `"`+realHash+`"`)
 	h.next.ServeHTTP(w, r)
 }
 
-// Hash returns the URL path from a prefix and a file path.
+// Hash returns the cleaned URL path for file.
 // If the file was successfully opened, the file hash is appended to the file name.
 // dir is the directory where the file is to be found.
 func (h *handler) Hash(path string) string {
-	path = strings.TrimPrefix(path, "/") // Avoid double "/" as h.prefix already ends with one.
 	hash, err := fileHash(filepath.Join(h.dir, path))
 	if err != nil {
-		return h.prefix + path
+		return filepath.Join(h.prefix, path)
 	}
 	extDotIdx := extDotIndex(path)
 	if extDotIdx == -1 {
-		return h.prefix + path + "." + hash
+		path += "." + hash
+	} else {
+		path = path[:extDotIdx] + "." + hash + path[extDotIdx:]
 	}
-	return h.prefix + path[:extDotIdx] + "." + hash + path[extDotIdx:]
+	return filepath.Join(h.prefix, path)
 }
 
 // toHTTPError is copied from net/http/fs.go.
