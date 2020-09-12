@@ -1,2 +1,2 @@
-github.com/gowww/crypto v0.0.0-20170801093636-cb356efb17f1 h1:Sp7mUNeGJAEs1offgaj1PXaoVCRtdYsMxWl+Nucn5vI=
-github.com/gowww/crypto v0.0.0-20170801093636-cb356efb17f1/go.mod h1:qR7BIjnlrDkBvi/nzPkEs94CgEl/rmLTSHO231JvwB0=
+github.com/gowww/crypto v1.0.0 h1:OEOtSl9LxTtK+B6oDXeq//Ta06Qgaz4govN+EYqhP6k=
+github.com/gowww/crypto v1.0.0/go.mod h1:qR7BIjnlrDkBvi/nzPkEs94CgEl/rmLTSHO231JvwB0=
