@@ -6,15 +6,15 @@ Package [static](https://godoc.org/github.com/gowww/static) provides a handler f
 
 1. Get package:
 
-	```Shell
-	go get -u github.com/gowww/static
-	```
+   ```Shell
+   go get -u github.com/gowww/static
+   ```
 
 2. Import it in your code:
 
-	```Go
-	import "github.com/gowww/static"
-	```
+   ```Go
+   import "github.com/gowww/static"
+   ```
 
 ## Usage
 
